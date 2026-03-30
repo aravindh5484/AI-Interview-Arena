@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard - AI Interview Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+
+    <div class="dashboard-frame">
+      <header class="topbar">
+        <div class="brand-badge">AI Interview Arena</div>
+
+        <div class="topbar-right">
+          <div class="user-chip">
+            <div class="avatar-circle" id="avatarLetter">A</div>
+            <div class="user-meta">
+              <span class="welcome-small">Welcome back</span>
+              <strong id="topUserName">User</strong>
+            </div>
+          </div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <main class="dashboard-content">
+        <section class="hero-card">
+          <div class="hero-text">
+            <p class="small-tag">Interview Intelligence Workspace</p>
+            <h1 id="heroUserName">Welcome, User</h1>
+            <p class="hero-sub">
+              Practice smarter with stream-based interview preparation, adaptive difficulty,
+              and activity-based insights.
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <button class="primary-btn" onclick="startInterview()">Start Interview</button>
+            <button class="secondary-btn" onclick="simulateResumeUpload()">Upload Resume</button>
+          </div>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel-card">
+            <h2>Profile Overview</h2>
+            <div class="profile-list">
+              <div class="profile-item">
+                <span>Name</span>
+                <strong id="profileName">-</strong>
+              </div>
+              <div class="profile-item">
+                <span>Email</span>
+                <strong id="profileEmail">-</strong>
+              </div>
+              <div class="profile-item">
+                <span>Stream</span>
+                <strong id="currentStream">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h2>Interview Setup</h2>
+
+            <div class="input-block">
+              <label for="streamSelect">Select Stream</label>
+              <select id="streamSelect" onchange="updateDashboardPreferences()">
+                <option value="B.Tech">B.Tech</option>
+                <option value="BBA">BBA</option>
+                <option value="MBA">MBA</option>
+                <option value="BCA">BCA</option>
+                <option value="MCA">MCA</option>
+                <option value="B.Sc">B.Sc</option>
+                <option value="BA">BA</option>
+              </select>
+            </div>
+
+            <div class="input-block">
+              <label for="interviewType">Interview Type</label>
+              <select id="interviewType" onchange="updateDifficultyByInterviewType()">
+                <option value="Technical">Technical</option>
+                <option value="HR">HR</option>
+                <option value="Startup Founder">Startup Founder</option>
+                <option value="Friendly Mentor">Friendly Mentor</option>
+              </select>
+            </div>
+
+            <div class="input-block">
+              <label for="difficultyLevel">Difficulty Level</label>
+              <select id="difficultyLevel" onchange="updateDashboardPreferences()">
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <div class="stat-card">
+            <h3 id="statInterviews">0</h3>
+            <p>Interviews Started</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="statUploads">0</h3>
+            <p>Resume Uploads</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="statType">Technical</h3>
+            <p>Preferred Interview Type</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="statDifficulty">Easy</h3>
+            <p>Current Difficulty</p>
+          </div>
+        </section>
+
+        <section class="chart-card">
+          <div class="card-head">
+            <h2>Performance Tracker</h2>
+            <span class="badge">Progress Graph</span>
+          </div>
+          <canvas id="performanceChart"></canvas>
+        </section>
+
+        <section class="grid-two">
+          <div class="panel-card">
+            <div class="card-head">
+              <h2>Usage Insights</h2>
+              <span class="badge">Smart Tracking</span>
+            </div>
+
+            <div class="activity-list">
+              <div class="activity-item">
+                <div>
+                  <strong>Selected Stream</strong>
+                  <p id="insightStream">B.Tech</p>
+                </div>
+                <span>Current</span>
+              </div>
+
+              <div class="activity-item">
+                <div>
+                  <strong>Selected Interview Type</strong>
+                  <p id="insightType">Technical</p>
+                </div>
+                <span>Current</span>
+              </div>
+
+              <div class="activity-item">
+                <div>
+                  <strong>Recommended Focus</strong>
+                  <p id="recommendedFocus">Projects, communication, and interview confidence</p>
+                </div>
+                <span>AI Suggestion</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="card-head">
+              <h2>Recommended Skills</h2>
+              <span class="badge alt">Based on Stream</span>
+            </div>
+
+            <div class="focus-tags" id="focusTags">
+              <span>Communication</span>
+              <span>Projects</span>
+              <span>Confidence</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

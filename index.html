@@ -1,56 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>AI Interview Arena</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-
 <body>
+  <div class="page-shell">
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
 
-<div class="overlay"></div>
+    <div class="auth-wrapper">
+      <div class="brand-badge">AI Interview Arena</div>
 
-<div class="main">
+      <div class="auth-card">
+        <div class="tabs">
+          <button class="tab-btn active" id="loginTab" onclick="showLogin()">Login</button>
+          <button class="tab-btn" id="signupTab" onclick="showSignup()">Sign Up</button>
+        </div>
 
-  <!-- LEFT SIDE (Branding) -->
-  <div class="left">
-    <h1>🚀 AI Interview Arena</h1>
-    <p>Simulate real-world interviews with adaptive AI.</p>
-  </div>
+        <div id="loginBox" class="form-box">
+          <h1>Welcome Back</h1>
+          <p class="subtitle">Sign in to continue your interview journey</p>
 
-  <!-- RIGHT SIDE (Auth Card) -->
-  <div class="right">
-    <div class="card">
+          <div class="input-group">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="Enter your email" />
+          </div>
 
-      <div class="tabs">
-        <button class="active" onclick="showLogin()">Login</button>
-        <button onclick="showSignup()">Sign Up</button>
+          <div class="input-group">
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="Enter your password" />
+          </div>
+
+          <button class="primary-btn" onclick="login()">Login</button>
+
+          <p class="switch-text">
+            Don’t have an account?
+            <span onclick="showSignup()">Create one</span>
+          </p>
+        </div>
+
+        <div id="signupBox" class="form-box hidden">
+          <h1>Create Account</h1>
+          <p class="subtitle">Build your profile and start practicing smarter</p>
+
+          <div class="input-group">
+            <label>Full Name</label>
+            <input id="signupName" type="text" placeholder="Enter your full name" />
+          </div>
+
+          <div class="input-group">
+            <label>Email</label>
+            <input id="signupEmail" type="email" placeholder="Enter your email" />
+          </div>
+
+          <div class="input-group">
+            <label>Password</label>
+            <input id="signupPassword" type="password" placeholder="Create your password" />
+          </div>
+
+          <button class="primary-btn" onclick="signup()">Sign Up</button>
+
+          <p class="switch-text">
+            Already have an account?
+            <span onclick="showLogin()">Login</span>
+          </p>
+        </div>
       </div>
-
-      <!-- LOGIN -->
-      <div id="loginForm">
-        <input type="email" placeholder="Email">
-        <input type="password" placeholder="Password">
-        <button class="main-btn">Login</button>
-      </div>
-
-      <!-- SIGNUP -->
-      <div id="signupForm" class="hidden">
-        <input type="text" placeholder="Full Name">
-        <input type="email" placeholder="Email">
-        <input type="password" placeholder="Password">
-        <button class="main-btn">Create Account</button>
-      </div>
-
     </div>
   </div>
 
-</div>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
