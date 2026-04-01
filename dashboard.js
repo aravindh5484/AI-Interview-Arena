@@ -13,11 +13,17 @@ document.getElementById("avatarLetter").innerText = userName.charAt(0).toUpperCa
 
 const defaultUsage = {
     stream: "B.Tech",
-    interviewType: "Technical",
+    interviewType: "",
     difficulty: "Easy",
     interviewsStarted: 0,
     resumeUploads: 0,
-
+    atsScore: 0,
+    resumeUploaded: false,
+    resumeKeywords: [],
+    generatedQuestions: [],
+    lastInterviewScore: 0,
+    lastInterviewAverage: 0,
+    lastInterviewSuggestion: "Upload your resume to unlock AI questions.",
     technicalScores: [0, 0, 0, 0, 0],
     communicationScores: [0, 0, 0, 0, 0],
     confidenceScores: [0, 0, 0, 0, 0]
@@ -25,38 +31,22 @@ const defaultUsage = {
 
 let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || defaultUsage;
 
+if (!usage || usage.resumeUploaded === undefined) {
+    usage = { ...defaultUsage };
+    localStorage.setItem("dashboardUsage", JSON.stringify(usage));
+}
+
 function saveUsage() {
     localStorage.setItem("dashboardUsage", JSON.stringify(usage));
 }
 
-function getFocusByStream(stream) {
-    const map = {
-        "B.Tech": ["DSA", "Projects", "System Design", "OOPs", "Communication"],
-        "BBA": ["Business Communication", "Leadership", "Presentation", "Marketing", "Case Handling"],
-        "MBA": ["Strategy", "Leadership", "Analytics", "Business Cases", "HR Rounds"],
-        "BCA": ["Programming", "Web Development", "DBMS", "Projects", "Communication"],
-        "MCA": ["Advanced Programming", "System Design", "Database", "Architecture", "Projects"],
-        "B.Sc": ["Core Concepts", "Problem Solving", "Research Thinking", "Aptitude", "Communication"],
-        "BA": ["Communication", "Critical Thinking", "Presentation", "Confidence", "HR Answers"]
-    };
-
-    return map[stream] || ["Communication", "Confidence", "Projects"];
-}
-
-function getRecommendation(stream, type) {
-    if (stream === "B.Tech" && type === "Technical") {
-        return "Focus on DSA, projects, and technical problem solving.";
-    }
-    if (stream === "BBA" && type === "HR") {
-        return "Focus on business communication, confidence, and situational answers.";
-    }
-    if (stream === "MBA" && type === "Startup Founder") {
-        return "Focus on leadership, ownership, and strategic thinking.";
-    }
-    if (type === "Friendly Mentor") {
-        return "Focus on structured answers and confidence building.";
-    }
-    return "Focus on communication, clarity, and practical examples.";
+function updateDashboardPreferences() {
+    usage.stream = document.getElementById("streamSelect").value;
+    usage.interviewType = document.getElementById("interviewType").value;
+    usage.difficulty = document.getElementById("difficultyLevel").value;
+    saveUsage();
+    renderDashboard();
+    renderPerformanceChart();
 }
 
 function updateDifficultyByInterviewType() {
@@ -65,18 +55,15 @@ function updateDifficultyByInterviewType() {
 
     let allowed = [];
 
-    if (type === "Technical") {
-        allowed = ["Easy", "Medium", "Hard"];
-    } else if (type === "HR") {
-        allowed = ["Easy", "Medium"];
-    } else if (type === "Startup Founder") {
-        allowed = ["Medium", "Hard"];
-    } else {
-        allowed = ["Easy", "Medium"];
-    }
+    if (type === "Technical") allowed = ["Easy", "Medium", "Hard"];
+    else if (type === "HR") allowed = ["Easy", "Medium"];
+    else if (type === "Startup Founder") allowed = ["Medium", "Hard"];
+    else if (type === "Friendly Mentor") allowed = ["Easy", "Medium"];
+    else if (type === "Virtual Interview") allowed = ["Medium", "Hard"];
+    else if (type === "Aptitude Test") allowed = ["Easy", "Medium", "Hard"];
+    else allowed = ["Easy", "Medium"];
 
     difficultySelect.innerHTML = "";
-
     allowed.forEach(level => {
         const option = document.createElement("option");
         option.value = level;
@@ -91,105 +78,141 @@ function updateDifficultyByInterviewType() {
     renderPerformanceChart();
 }
 
-function updateDashboardPreferences() {
-    usage.stream = document.getElementById("streamSelect").value;
-    usage.interviewType = document.getElementById("interviewType").value;
-    usage.difficulty = document.getElementById("difficultyLevel").value;
-    saveUsage();
-    renderDashboard();
-    renderPerformanceChart();
+function openFilePicker() {
+    document.getElementById("resumeInput").click();
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const resumeInput = document.getElementById("resumeInput");
+
+    if (resumeInput) {
+        resumeInput.addEventListener("change", async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("resume", file);
+            formData.append("stream", usage.stream);
+            formData.append("difficulty", usage.difficulty);
+
+            try {
+                const res = await fetch("http://localhost:5000/upload-resume", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(data.message || "Could not upload the PDF");
+                    return;
+                }
+
+                usage.resumeUploaded = true;
+                usage.resumeUploads += 1;
+                usage.atsScore = data.atsScore;
+                usage.resumeKeywords = data.keywords || [];
+                usage.generatedQuestions = data.questions || [];
+                usage.lastInterviewSuggestion = "Resume analyzed. Your personalized questions are ready.";
+
+                saveUsage();
+                renderDashboard();
+                renderPerformanceChart();
+
+                alert(`Resume uploaded successfully.\nATS Score: ${usage.atsScore}%`);
+            } catch (err) {
+                console.error(err);
+                alert("Could not upload the PDF");
+            }
+        });
+    }
+});
 
 function renderDashboard() {
     document.getElementById("streamSelect").value = usage.stream;
-    document.getElementById("interviewType").value = usage.interviewType;
+    document.getElementById("interviewType").value = usage.interviewType || "Technical";
     document.getElementById("difficultyLevel").value = usage.difficulty;
 
     document.getElementById("currentStream").innerText = usage.stream;
     document.getElementById("statInterviews").innerText = usage.interviewsStarted;
     document.getElementById("statUploads").innerText = usage.resumeUploads;
-    document.getElementById("statType").innerText = usage.interviewType;
+    document.getElementById("statATS").innerText = usage.resumeUploaded ? `${usage.atsScore}%` : "--";
     document.getElementById("statDifficulty").innerText = usage.difficulty;
 
     document.getElementById("insightStream").innerText = usage.stream;
-    document.getElementById("insightType").innerText = usage.interviewType;
-    document.getElementById("recommendedFocus").innerText = getRecommendation(usage.stream, usage.interviewType);
+    document.getElementById("insightType").innerText = usage.interviewType || "Not selected";
+    document.getElementById("recommendedFocus").innerText = usage.lastInterviewSuggestion || "Upload your resume to unlock AI questions.";
 
-    const tags = getFocusByStream(usage.stream);
     const tagsBox = document.getElementById("focusTags");
     tagsBox.innerHTML = "";
 
-    tags.forEach(tag => {
-        const span = document.createElement("span");
-        span.textContent = tag;
-        tagsBox.appendChild(span);
-    });
-}
-
-function getIncrementValues() {
-    let technical = 8;
-    let communication = 7;
-    let confidence = 6;
-
-    if (usage.interviewType === "HR") {
-        technical = 4;
-        communication = 9;
-        confidence = 8;
-    } else if (usage.interviewType === "Startup Founder") {
-        technical = 7;
-        communication = 8;
-        confidence = 9;
-    } else if (usage.interviewType === "Friendly Mentor") {
-        technical = 5;
-        communication = 8;
-        confidence = 8;
+    if (usage.resumeUploaded && usage.resumeKeywords.length > 0) {
+        usage.resumeKeywords.forEach(tag => {
+            const span = document.createElement("span");
+            span.textContent = tag;
+            tagsBox.appendChild(span);
+        });
+    } else {
+        ["Upload", "Resume", "To Begin"].forEach(tag => {
+            const span = document.createElement("span");
+            span.textContent = tag;
+            tagsBox.appendChild(span);
+        });
     }
 
-    if (usage.difficulty === "Medium") {
-        technical += 4;
-        communication += 3;
-        confidence += 3;
-    } else if (usage.difficulty === "Hard") {
-        technical += 8;
-        communication += 6;
-        confidence += 5;
+    const uploadBtn = document.getElementById("uploadBtn");
+    const virtualBtn = document.getElementById("virtualBtn");
+    const aptitudeBtn = document.getElementById("aptitudeBtn");
+    const startBtn = document.getElementById("startBtn");
+
+    if (!usage.resumeUploaded) {
+        uploadBtn.style.display = "inline-block";
+        virtualBtn.style.display = "none";
+        aptitudeBtn.style.display = "none";
+        startBtn.style.display = "none";
+        return;
     }
 
-    return { technical, communication, confidence };
+    uploadBtn.style.display = "none";
+    virtualBtn.style.display = "inline-block";
+    aptitudeBtn.style.display = "inline-block";
+    startBtn.style.display = usage.interviewType ? "inline-block" : "none";
 }
 
-function pushScore(array, value) {
-    array.shift();
-    array.push(Math.min(value, 100));
+function selectMode(type) {
+    usage.interviewType = type;
+    saveUsage();
+    renderDashboard();
+}
+
+function pushScore(arr, val) {
+    arr.shift();
+    arr.push(Math.min(val, 100));
 }
 
 function startInterview() {
+    if (usage.interviewType === "Virtual Interview") {
+        window.location.href = "interview.html";
+        return;
+    }
+
+    if (usage.interviewType === "Aptitude Test") {
+        window.location.href = "aptitude.html";
+        return;
+    }
+
     usage.interviewsStarted += 1;
-    usage.stream = document.getElementById("streamSelect").value;
-    usage.interviewType = document.getElementById("interviewType").value;
-    usage.difficulty = document.getElementById("difficultyLevel").value;
+    pushScore(usage.technicalScores, usage.technicalScores.at(-1) + 10);
+    pushScore(usage.communicationScores, usage.communicationScores.at(-1) + 8);
+    pushScore(usage.confidenceScores, usage.confidenceScores.at(-1) + 7);
 
-    const inc = getIncrementValues();
-
-    const lastTechnical = usage.technicalScores[usage.technicalScores.length - 1];
-    const lastCommunication = usage.communicationScores[usage.communicationScores.length - 1];
-    const lastConfidence = usage.confidenceScores[usage.confidenceScores.length - 1];
-
-    pushScore(usage.technicalScores, lastTechnical + inc.technical);
-    pushScore(usage.communicationScores, lastCommunication + inc.communication);
-    pushScore(usage.confidenceScores, lastConfidence + inc.confidence);
+    usage.lastInterviewSuggestion = "Interview completed. Continue improving your clarity and project explanations.";
 
     saveUsage();
     renderDashboard();
     renderPerformanceChart();
 
-    alert(`Starting ${usage.interviewType} interview for ${usage.stream} at ${usage.difficulty} level`);
-}
-
-function simulateResumeUpload() {
-    usage.resumeUploads += 1;
-    saveUsage();
-    renderDashboard();
+    alert(`Starting ${usage.interviewType || "Interview"} 🚀`);
 }
 
 function renderPerformanceChart() {
@@ -197,9 +220,7 @@ function renderPerformanceChart() {
     if (!canvas) return;
 
     const existingChart = Chart.getChart(canvas);
-    if (existingChart) {
-        existingChart.destroy();
-    }
+    if (existingChart) existingChart.destroy();
 
     new Chart(canvas, {
         type: "line",
@@ -236,27 +257,17 @@ function renderPerformanceChart() {
             responsive: true,
             plugins: {
                 legend: {
-                    labels: {
-                        color: "#ffffff"
-                    }
+                    labels: { color: "#ffffff" }
                 }
             },
             scales: {
                 x: {
-                    ticks: {
-                        color: "#ffffff"
-                    },
-                    grid: {
-                        color: "rgba(255,255,255,0.08)"
-                    }
+                    ticks: { color: "#ffffff" },
+                    grid: { color: "rgba(255,255,255,0.08)" }
                 },
                 y: {
-                    ticks: {
-                        color: "#ffffff"
-                    },
-                    grid: {
-                        color: "rgba(255,255,255,0.08)"
-                    },
+                    ticks: { color: "#ffffff" },
+                    grid: { color: "rgba(255,255,255,0.08)" },
                     min: 0,
                     max: 100
                 }

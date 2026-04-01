@@ -35,14 +35,26 @@
             <p class="small-tag">Interview Intelligence Workspace</p>
             <h1 id="heroUserName">Welcome, User</h1>
             <p class="hero-sub">
-              Practice smarter with stream-based interview preparation, adaptive difficulty,
-              and activity-based insights.
+              Upload your resume, unlock AI-generated questions, and practice using
+              virtual interview or aptitude-based modes.
             </p>
           </div>
 
           <div class="hero-actions">
-            <button class="primary-btn" onclick="startInterview()">Start Interview</button>
-            <button class="secondary-btn" onclick="simulateResumeUpload()">Upload Resume</button>
+            <button class="primary-btn" id="uploadBtn" onclick="openFilePicker()">Upload Resume</button>
+            <input type="file" id="resumeInput" accept=".pdf" hidden />
+
+            <button class="secondary-btn hidden-action" id="virtualBtn" onclick="selectMode('Virtual Interview')">
+              Virtual Interview
+            </button>
+
+            <button class="secondary-btn hidden-action" id="aptitudeBtn" onclick="selectMode('Aptitude Test')">
+              Aptitude Test
+            </button>
+
+            <button class="secondary-btn hidden-action" id="startBtn" onclick="startInterview()">
+              Start Interview
+            </button>
           </div>
         </section>
 
@@ -88,6 +100,8 @@
                 <option value="HR">HR</option>
                 <option value="Startup Founder">Startup Founder</option>
                 <option value="Friendly Mentor">Friendly Mentor</option>
+                <option value="Virtual Interview">Virtual Interview</option>
+                <option value="Aptitude Test">Aptitude Test</option>
               </select>
             </div>
 
@@ -112,8 +126,8 @@
             <p>Resume Uploads</p>
           </div>
           <div class="stat-card">
-            <h3 id="statType">Technical</h3>
-            <p>Preferred Interview Type</p>
+            <h3 id="statATS">--</h3>
+            <p>ATS Score</p>
           </div>
           <div class="stat-card">
             <h3 id="statDifficulty">Easy</h3>
@@ -148,7 +162,7 @@
               <div class="activity-item">
                 <div>
                   <strong>Selected Interview Type</strong>
-                  <p id="insightType">Technical</p>
+                  <p id="insightType">Not selected</p>
                 </div>
                 <span>Current</span>
               </div>
@@ -156,7 +170,7 @@
               <div class="activity-item">
                 <div>
                   <strong>Recommended Focus</strong>
-                  <p id="recommendedFocus">Projects, communication, and interview confidence</p>
+                  <p id="recommendedFocus">Upload your resume to unlock AI questions.</p>
                 </div>
                 <span>AI Suggestion</span>
               </div>
@@ -165,14 +179,14 @@
 
           <div class="panel-card">
             <div class="card-head">
-              <h2>Recommended Skills</h2>
-              <span class="badge alt">Based on Stream</span>
+              <h2>Resume Keywords</h2>
+              <span class="badge alt">Extracted</span>
             </div>
 
             <div class="focus-tags" id="focusTags">
-              <span>Communication</span>
-              <span>Projects</span>
-              <span>Confidence</span>
+              <span>Upload</span>
+              <span>Resume</span>
+              <span>To Begin</span>
             </div>
           </div>
         </section>

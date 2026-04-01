@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtual Interview - AI Interview Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="interview.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+
+    <div class="interview-frame">
+      <header class="topbar">
+        <div class="brand-badge">AI Interview Arena</div>
+        <div class="topbar-right">
+          <span class="session-badge">Virtual Interview</span>
+          <button class="end-btn" onclick="endInterview()">End Interview</button>
+        </div>
+      </header>
+
+      <main class="interview-content">
+        <section class="video-panel">
+          <div class="panel-title">Live Camera</div>
+          <video id="cameraFeed" autoplay muted playsinline></video>
+          <div class="camera-status" id="cameraStatus">Starting camera and microphone...</div>
+        </section>
+
+        <section class="qa-panel">
+          <div class="panel-title">AI Interviewer</div>
+
+          <div class="question-box">
+            <p class="label">Current Question</p>
+            <h2 id="questionText">Preparing your interview...</h2>
+          </div>
+
+          <div class="answer-box">
+            <p class="label">Your Answer</p>
+            <div id="answerText">Your spoken answer will appear here...</div>
+          </div>
+
+          <div class="action-row">
+            <button class="primary-btn" id="startRoundBtn" onclick="beginInterviewRound()">Start Interview</button>
+            <button class="secondary-btn" id="listenBtn" onclick="startListening()" disabled>Answer by Voice</button>
+            <button class="secondary-btn" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+          </div>
+
+          <div class="mini-stats">
+            <div class="mini-card">
+              <span>Question</span>
+              <strong id="questionCount">0 / 5</strong>
+            </div>
+            <div class="mini-card">
+              <span>Current Score</span>
+              <strong id="currentScore">0</strong>
+            </div>
+            <div class="mini-card">
+              <span>Status</span>
+              <strong id="interviewStatus">Ready</strong>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="interview.js"></script>
+</body>
+</html>

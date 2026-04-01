@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aptitude Test - AI Interview Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="aptitude.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+
+    <div class="aptitude-frame">
+      <header class="topbar">
+        <div class="brand-badge">AI Interview Arena</div>
+        <div class="topbar-right">
+          <span class="session-badge" id="aptitudeStream">Aptitude Test</span>
+          <button class="end-btn" onclick="submitTest()">End Aptitude Test</button>
+        </div>
+      </header>
+
+      <main class="aptitude-content">
+        <section class="info-panel">
+          <div class="mini-card">
+            <span>Stream</span>
+            <strong id="streamName">B.Tech</strong>
+          </div>
+          <div class="mini-card">
+            <span>Difficulty</span>
+            <strong id="difficultyName">Easy</strong>
+          </div>
+          <div class="mini-card">
+            <span>Questions</span>
+            <strong>10</strong>
+          </div>
+        </section>
+
+        <section class="question-panel" id="questionContainer"></section>
+
+        <section class="submit-panel">
+          <button class="primary-btn" onclick="submitTest()">Submit Test</button>
+        </section>
+
+        <section class="result-panel hidden" id="resultPanel">
+          <div class="result-head">
+            <h2>Your Aptitude Result</h2>
+            <span id="scoreBadge">0 / 10</span>
+          </div>
+
+          <div class="result-summary" id="resultSummary"></div>
+          <div class="answer-review" id="answerReview"></div>
+          <div class="back-row">
+            <button class="secondary-btn" onclick="goDashboard()">Back to Dashboard</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="aptitude.js"></script>
+</body>
+</html>
