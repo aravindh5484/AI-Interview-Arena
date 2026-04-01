@@ -1,4 +1,14 @@
-const usage = JSON.parse(localStorage.getItem("dashboardUsage")) || null;
+const userName = localStorage.getItem("userName");
+const userEmail = localStorage.getItem("userEmail");
+
+if (!userName || !userEmail) {
+    window.location.href = "index.html";
+}
+
+document.getElementById("topUserName").innerText = userName;
+document.getElementById("avatarLetter").innerText = userName.charAt(0).toUpperCase();
+
+let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || null;
 
 if (!usage) {
     window.location.href = "dashboard.html";
@@ -6,7 +16,6 @@ if (!usage) {
 
 document.getElementById("streamName").innerText = usage.stream;
 document.getElementById("difficultyName").innerText = usage.difficulty;
-document.getElementById("aptitudeStream").innerText = `${usage.stream} Aptitude`;
 
 const questionContainer = document.getElementById("questionContainer");
 const resultPanel = document.getElementById("resultPanel");
@@ -70,12 +79,8 @@ function generateLogicalQuestions() {
         makeQuestion("Find the next number: 5, 10, 15, 20, ?", ["25", "30", "35", "40"], "25"),
         makeQuestion("Odd one out: Apple, Mango, Carrot, Banana", ["Apple", "Mango", "Carrot", "Banana"], "Carrot"),
         makeQuestion("Odd one out: Circle, Triangle, Square, Table", ["Circle", "Triangle", "Square", "Table"], "Table"),
-        makeQuestion("If CAT = 24, DOG = ?", ["26", "30", "22", "20"], "26"),
-        makeQuestion("Statement: All pens are books. All books are bags. Then all pens are bags?", ["Yes", "No", "Maybe", "Cannot say"], "Yes"),
         makeQuestion("Clock angle at 3:00 is", ["0°", "45°", "90°", "180°"], "90°"),
-        makeQuestion("If A=1, B=2, then CAB = ?", ["6", "5", "4", "3"], "6"),
-        makeQuestion("Series: A, C, E, G, ?", ["H", "I", "J", "K"], "I"),
-        makeQuestion("Mirror of 12:15 on a clock is", ["11:45", "12:45", "5:45", "6:45"], "11:45")
+        makeQuestion("Series: A, C, E, G, ?", ["H", "I", "J", "K"], "I")
     ];
 
     while (bank.length < 25) {
@@ -97,14 +102,7 @@ function generateVerbalQuestions() {
         makeQuestion("Fill in the blank: She ___ to college every day.", ["go", "goes", "gone", "going"], "goes"),
         makeQuestion("Choose the correct spelling.", ["Enviroment", "Environment", "Enviornment", "Envirnoment"], "Environment"),
         makeQuestion("Choose the synonym of 'Accurate'", ["Wrong", "Exact", "Lazy", "Loose"], "Exact"),
-        makeQuestion("Choose the antonym of 'Expand'", ["Grow", "Shrink", "Increase", "Rise"], "Shrink"),
-        makeQuestion("Fill in the blank: They ___ playing football.", ["is", "am", "are", "was"], "are"),
-        makeQuestion("Choose the correct sentence.", [
-            "He go to school",
-            "He goes to school",
-            "He going to school",
-            "He gone to school"
-        ], "He goes to school")
+        makeQuestion("Choose the antonym of 'Expand'", ["Grow", "Shrink", "Increase", "Rise"], "Shrink")
     ];
 
     while (bank.length < 20) {
@@ -128,22 +126,14 @@ function generateBTechSpecific() {
             "Digital Base Mapping System",
             "Desktop Base Management System"
         ], "Database Management System"),
-        makeQuestion("Which of these is a JavaScript framework/library?", ["React", "Oracle", "Linux", "Mongo"], "React"),
+        makeQuestion("Which of these is a JavaScript library/framework?", ["React", "Oracle", "Linux", "Mongo"], "React"),
         makeQuestion("Which protocol is used to load web pages?", ["FTP", "HTTP", "SMTP", "SNMP"], "HTTP"),
-        makeQuestion("Which keyword is used to declare a variable in JavaScript?", ["var", "int", "string", "float"], "var"),
-        makeQuestion("Which database is NoSQL?", ["MySQL", "Oracle", "MongoDB", "PostgreSQL"], "MongoDB"),
-        makeQuestion("HTML stands for", [
-            "Hyper Text Markup Language",
-            "High Text Markdown Language",
-            "Hyperlink and Text Markup Language",
-            "Home Tool Markup Language"
-        ], "Hyper Text Markup Language")
+        makeQuestion("Which database is NoSQL?", ["MySQL", "Oracle", "MongoDB", "PostgreSQL"], "MongoDB")
     ];
 
     while (bank.length < 30) {
-        const n = bank.length + 1;
         bank.push(makeQuestion(
-            `Which concept is important in programming problem solving? (#${n})`,
+            "Which concept is important in programming problem solving?",
             ["Memorizing only", "Logic building", "Ignoring errors", "No testing"],
             "Logic building"
         ));
@@ -167,19 +157,7 @@ function generateBusinessSpecific() {
             "Strategy, Work, Operations, Trade",
             "System, Web, Output, Tools"
         ], "Strengths, Weaknesses, Opportunities, Threats"),
-        makeQuestion("Which department focuses on promoting products?", ["Marketing", "HR", "Audit", "Admin"], "Marketing"),
-        makeQuestion("A balance sheet mainly shows", [
-            "Assets and liabilities",
-            "Only profits",
-            "Only sales",
-            "Only employee count"
-        ], "Assets and liabilities"),
-        makeQuestion("Leadership mainly means", [
-            "Avoiding responsibility",
-            "Guiding and motivating people",
-            "Working alone always",
-            "Ignoring team input"
-        ], "Guiding and motivating people")
+        makeQuestion("Which department focuses on promoting products?", ["Marketing", "HR", "Audit", "Admin"], "Marketing")
     ];
 
     while (bank.length < 30) {
@@ -248,7 +226,7 @@ function renderQuestions() {
         const card = document.createElement("div");
         card.className = "question-card";
 
-        const optionsHtml = q.options.map((opt, i) => {
+        const optionsHtml = q.options.map((opt) => {
             return `
               <label class="option-label">
                 <input type="radio" name="q${index}" value="${opt}">
