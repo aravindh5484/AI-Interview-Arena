@@ -1,3 +1,5 @@
+const API_URL = "https://ai-interview-backend-230t.onrender.com";
+
 const userName = localStorage.getItem("userName");
 const userEmail = localStorage.getItem("userEmail");
 
@@ -96,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append("difficulty", usage.difficulty);
 
             try {
-                const res = await fetch("http://localhost:5000/upload-resume", {
+                const res = await fetch(`${API_URL}/upload-resume`, {
                     method: "POST",
                     body: formData
                 });

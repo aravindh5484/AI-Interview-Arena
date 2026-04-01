@@ -1,6 +1,6 @@
-const API_URL = "http://localhost:5000";
+const API_URL = "https://ai-interview-backend-230t.onrender.com";
 
-// 🔁 SWITCH UI (uses your existing classes)
+// 🔁 SWITCH UI
 function showSignup() {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("signupBox").style.display = "block";
@@ -13,7 +13,6 @@ function showLogin() {
 
 // 📝 SIGNUP
 async function signup() {
-
     const name = document.getElementById("signupName")?.value.trim();
     const email = document.getElementById("signupEmail")?.value.trim();
     const password = document.getElementById("signupPassword")?.value.trim();
@@ -36,26 +35,21 @@ async function signup() {
 
         if (res.ok) {
             alert("Signup successful");
-
-            // 👉 auto switch to login (no UI change)
             showLogin();
 
             document.getElementById("loginEmail").value = email;
             document.getElementById("loginPassword").value = password;
-
         } else {
             alert(data.message);
         }
-
     } catch (err) {
-        console.log(err);
+        console.error(err);
         alert("Server not working");
     }
 }
 
 // 🔐 LOGIN
 async function login() {
-
     const email = document.getElementById("loginEmail")?.value.trim();
     const password = document.getElementById("loginPassword")?.value.trim();
 
@@ -76,20 +70,16 @@ async function login() {
         const data = await res.json();
 
         if (res.ok) {
-
-            // ✅ FIX: store real name
             localStorage.setItem("userName", data.name);
             localStorage.setItem("userEmail", data.email);
 
             alert("Login successful");
             window.location.href = "dashboard.html";
-
         } else {
             alert(data.message);
         }
-
     } catch (err) {
-        console.log(err);
+        console.error(err);
         alert("Server not working");
     }
 }

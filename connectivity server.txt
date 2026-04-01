@@ -1,2 +1,10 @@
 "E:\Aravindh\AI INterview\Database\mongodb-win32-x86_64-windows-8.2.6\bin\mongod.exe" cmd prompt
 2.vs code terminal :node server.js
+
+
+
+
+
+
+
+https://ai-interview-backend-230t.onrender.com-backend live connectivity
