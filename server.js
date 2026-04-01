@@ -4,11 +4,15 @@ const cors = require("cors");
 const multer = require("multer");
 const { PDFParse } = require("pdf-parse");
 
+require("dotenv").config(); // ✅ must be here (top)
+
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/ai-interview")
+// ✅ correct MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.log("❌ DB Error:", err.message));
 
