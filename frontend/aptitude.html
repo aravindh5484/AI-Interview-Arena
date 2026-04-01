@@ -2,83 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Aptitude Test - AI Interview Arena</title>
+  <title>Aptitude Test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="aptitude.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div class="page-shell">
-    <div class="ambient ambient-1"></div>
-    <div class="ambient ambient-2"></div>
 
-    <div class="aptitude-frame">
-      <header class="topbar">
-        <div class="brand-badge">AI Interview Arena</div>
+<div class="page-shell">
 
-        <div class="topbar-right">
-          <div class="user-chip">
-            <div class="avatar-circle" id="avatarLetter">A</div>
-            <div class="user-meta">
-              <span class="welcome-small">Aptitude Mode</span>
-              <strong id="topUserName">User</strong>
-            </div>
-          </div>
+  <div class="aptitude-frame">
 
-          <button class="end-btn" onclick="submitTest()">End Aptitude Test</button>
-        </div>
-      </header>
+    <header class="topbar">
+      <h2>AI Interview Arena</h2>
+      <button onclick="submitTest()">End Aptitude Test</button>
+    </header>
 
-      <main class="aptitude-content">
-        <section class="hero-card">
-          <div class="hero-text">
-            <p class="small-tag">Placement Aptitude Assessment</p>
-            <h1 id="heroTitle">Aptitude Test</h1>
-            <p class="hero-sub">
-              You will get 10 random questions based on your selected stream.
-              Submit the test to see your score and correct answers.
-            </p>
-          </div>
+    <main class="aptitude-content">
 
-          <div class="hero-actions">
-            <div class="mini-stat">
-              <span>Stream</span>
-              <strong id="streamName">B.Tech</strong>
-            </div>
-            <div class="mini-stat">
-              <span>Difficulty</span>
-              <strong id="difficultyName">Easy</strong>
-            </div>
-            <div class="mini-stat">
-              <span>Questions</span>
-              <strong>10</strong>
-            </div>
-          </div>
-        </section>
+      <h2>Aptitude Test</h2>
 
-        <section class="question-panel" id="questionContainer"></section>
+      <p><b>Stream:</b> <span id="streamName"></span></p>
+      <p><b>Difficulty:</b> <span id="difficultyName"></span></p>
+      <p><b>Questions:</b> 10</p>
 
-        <section class="submit-panel">
-          <button class="primary-btn" onclick="submitTest()">Submit Test</button>
-        </section>
+      <!-- QUESTIONS -->
+      <div id="questionContainer"></div>
 
-        <section class="result-panel hidden" id="resultPanel">
-          <div class="card-head">
-            <h2>Your Aptitude Result</h2>
-            <span class="badge" id="scoreBadge">0 / 10</span>
-          </div>
+      <!-- SUBMIT -->
+      <button onclick="submitTest()">Submit Test</button>
 
-          <div class="result-summary" id="resultSummary"></div>
-          <div class="answer-review" id="answerReview"></div>
+      <!-- RESULT -->
+      <div id="resultPanel" class="hidden">
+        <h2>Your Aptitude Result</h2>
+        <p id="scoreBadge">0 / 10</p>
 
-          <div class="back-row">
-            <button class="secondary-btn" onclick="goDashboard()">Back to Dashboard</button>
-          </div>
-        </section>
-      </main>
-    </div>
+        <div id="resultSummary"></div>
+        <div id="answerReview"></div>
+
+        <button onclick="goDashboard()">Back to Dashboard</button>
+      </div>
+
+    </main>
+
   </div>
 
-  <script src="aptitude.js"></script>
+</div>
+
+<script src="aptitude.js"></script>
+
 </body>
 </html>
