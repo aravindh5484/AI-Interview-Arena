@@ -5,23 +5,29 @@ if (!userName || !userEmail) {
     window.location.href = "index.html";
 }
 
-document.getElementById("topUserName").innerText = userName;
-document.getElementById("avatarLetter").innerText = userName.charAt(0).toUpperCase();
-
-let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || null;
-
-if (!usage) {
-    window.location.href = "dashboard.html";
-}
-
-document.getElementById("streamName").innerText = usage.stream;
-document.getElementById("difficultyName").innerText = usage.difficulty;
-
+// safe DOM access
+const topUserNameEl = document.getElementById("topUserName");
+const avatarLetterEl = document.getElementById("avatarLetter");
+const streamNameEl = document.getElementById("streamName");
+const difficultyNameEl = document.getElementById("difficultyName");
 const questionContainer = document.getElementById("questionContainer");
 const resultPanel = document.getElementById("resultPanel");
 const resultSummary = document.getElementById("resultSummary");
 const answerReview = document.getElementById("answerReview");
 const scoreBadge = document.getElementById("scoreBadge");
+
+if (topUserNameEl) topUserNameEl.innerText = userName;
+if (avatarLetterEl) avatarLetterEl.innerText = userName.charAt(0).toUpperCase();
+
+let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || null;
+
+if (!usage) {
+    alert("No dashboard data found. Going back to dashboard.");
+    window.location.href = "dashboard.html";
+}
+
+if (streamNameEl) streamNameEl.innerText = usage.stream || "B.Tech";
+if (difficultyNameEl) difficultyNameEl.innerText = usage.difficulty || "Easy";
 
 function shuffle(array) {
     return [...array].sort(() => Math.random() - 0.5);
@@ -216,10 +222,15 @@ function buildQuestionBank(stream) {
     return shuffle(bank).slice(0, 100);
 }
 
-const fullBank = buildQuestionBank(usage.stream);
+const fullBank = buildQuestionBank(usage.stream || "B.Tech");
 const selectedQuestions = shuffle(fullBank).slice(0, 10);
 
 function renderQuestions() {
+    if (!questionContainer) {
+        console.error("questionContainer not found in aptitude.html");
+        return;
+    }
+
     questionContainer.innerHTML = "";
 
     selectedQuestions.forEach((q, index) => {
@@ -259,7 +270,7 @@ function getSuggestion(scorePercent) {
 
 function submitTest() {
     let score = 0;
-    answerReview.innerHTML = "";
+    if (answerReview) answerReview.innerHTML = "";
 
     selectedQuestions.forEach((q, index) => {
         const chosen = document.querySelector(`input[name="q${index}"]:checked`);
@@ -269,14 +280,16 @@ function submitTest() {
             score += 1;
         }
 
-        const review = document.createElement("div");
-        review.className = "review-card";
-        review.innerHTML = `
-          <strong>Q${index + 1}. ${q.question}</strong>
-          <p><strong>Your Answer:</strong> ${userAnswer}</p>
-          <p><strong>Correct Answer:</strong> ${q.answer}</p>
-        `;
-        answerReview.appendChild(review);
+        if (answerReview) {
+            const review = document.createElement("div");
+            review.className = "review-card";
+            review.innerHTML = `
+              <strong>Q${index + 1}. ${q.question}</strong>
+              <p><strong>Your Answer:</strong> ${userAnswer}</p>
+              <p><strong>Correct Answer:</strong> ${q.answer}</p>
+            `;
+            answerReview.appendChild(review);
+        }
     });
 
     const scorePercent = Math.round((score / 10) * 100);
@@ -296,10 +309,14 @@ function submitTest() {
 
     localStorage.setItem("dashboardUsage", JSON.stringify(usage));
 
-    scoreBadge.innerText = `${score} / 10`;
-    resultSummary.innerText = `You scored ${score} out of 10 (${scorePercent}%). ${usage.lastInterviewSuggestion}`;
+    if (scoreBadge) scoreBadge.innerText = `${score} / 10`;
+    if (resultSummary) {
+        resultSummary.innerText = `You scored ${score} out of 10 (${scorePercent}%). ${usage.lastInterviewSuggestion}`;
+    }
+    if (resultPanel) {
+        resultPanel.classList.remove("hidden");
+    }
 
-    resultPanel.classList.remove("hidden");
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
