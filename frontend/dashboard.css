@@ -416,7 +416,8 @@ body {
     .hero-text h1 {
         font-size: 28px;
     }
+
     .hidden-action {
-    display: none;
-}
+        display: none;
+    }
 }

@@ -1,21 +1,8 @@
 const API_URL = "https://ai-interview-backend-230t.onrender.com";
 
-const userName = localStorage.getItem("userName");
-const userEmail = localStorage.getItem("userEmail");
-
-if (!userName || !userEmail) {
-    window.location.href = "index.html";
-}
-
-document.getElementById("topUserName").innerText = userName;
-document.getElementById("heroUserName").innerText = `Welcome, ${userName}`;
-document.getElementById("profileName").innerText = userName;
-document.getElementById("profileEmail").innerText = userEmail;
-document.getElementById("avatarLetter").innerText = userName.charAt(0).toUpperCase();
-
 const defaultUsage = {
     stream: "B.Tech",
-    interviewType: "",
+    interviewType: "Technical",
     difficulty: "Easy",
     interviewsStarted: 0,
     resumeUploads: 0,
@@ -31,21 +18,57 @@ const defaultUsage = {
     confidenceScores: [0, 0, 0, 0, 0]
 };
 
-let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || defaultUsage;
+let usage = JSON.parse(localStorage.getItem("dashboardUsage")) || { ...defaultUsage };
 
-if (!usage || usage.resumeUploaded === undefined) {
+if (!usage || typeof usage !== "object") {
     usage = { ...defaultUsage };
-    localStorage.setItem("dashboardUsage", JSON.stringify(usage));
 }
+
+usage = {
+    ...defaultUsage,
+    ...usage
+};
+
+let performanceChartInstance = null;
 
 function saveUsage() {
     localStorage.setItem("dashboardUsage", JSON.stringify(usage));
+}
+
+function getUserData() {
+    return {
+        userName: localStorage.getItem("userName") || "",
+        userEmail: localStorage.getItem("userEmail") || "",
+        isLoggedIn: localStorage.getItem("isLoggedIn") || "false"
+    };
+}
+
+function protectDashboard() {
+    const { userName, userEmail, isLoggedIn } = getUserData();
+
+    if (isLoggedIn !== "true" || !userName || !userEmail) {
+        window.location.href = "index.html";
+        return false;
+    }
+
+    return true;
+}
+
+function fillUserDetails() {
+    const { userName, userEmail } = getUserData();
+
+    document.getElementById("topUserName").innerText = userName;
+    document.getElementById("heroUserName").innerText = `Welcome, ${userName}`;
+    document.getElementById("profileName").innerText = userName;
+    document.getElementById("profileEmail").innerText = userEmail;
+    document.getElementById("avatarLetter").innerText = userName.charAt(0).toUpperCase();
 }
 
 function updateDashboardPreferences() {
     usage.stream = document.getElementById("streamSelect").value;
     usage.interviewType = document.getElementById("interviewType").value;
     usage.difficulty = document.getElementById("difficultyLevel").value;
+
     saveUsage();
     renderDashboard();
     renderPerformanceChart();
@@ -66,6 +89,7 @@ function updateDifficultyByInterviewType() {
     else allowed = ["Easy", "Medium"];
 
     difficultySelect.innerHTML = "";
+
     allowed.forEach(level => {
         const option = document.createElement("option");
         option.value = level;
@@ -74,66 +98,82 @@ function updateDifficultyByInterviewType() {
     });
 
     usage.interviewType = type;
-    usage.difficulty = allowed[0];
+
+    if (!allowed.includes(usage.difficulty)) {
+        usage.difficulty = allowed[0];
+    }
+
+    difficultySelect.value = usage.difficulty;
+
     saveUsage();
     renderDashboard();
     renderPerformanceChart();
 }
 
 function openFilePicker() {
-    document.getElementById("resumeInput").click();
+    const resumeInput = document.getElementById("resumeInput");
+    if (resumeInput) resumeInput.click();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function bindResumeUpload() {
     const resumeInput = document.getElementById("resumeInput");
 
-    if (resumeInput) {
-        resumeInput.addEventListener("change", async function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
+    if (!resumeInput) return;
 
-            const formData = new FormData();
-            formData.append("resume", file);
-            formData.append("stream", usage.stream);
-            formData.append("difficulty", usage.difficulty);
+    resumeInput.addEventListener("change", async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-            try {
-                const res = await fetch(`${API_URL}/upload-resume`, {
-                    method: "POST",
-                    body: formData
-                });
+        const formData = new FormData();
+        formData.append("resume", file);
+        formData.append("stream", usage.stream);
+        formData.append("difficulty", usage.difficulty);
 
-                const data = await res.json();
+        try {
+            const res = await fetch(`${API_URL}/upload-resume`, {
+                method: "POST",
+                body: formData
+            });
 
-                if (!res.ok) {
-                    alert(data.message || "Could not upload the PDF");
-                    return;
-                }
+            const data = await res.json();
 
-                usage.resumeUploaded = true;
-                usage.resumeUploads += 1;
-                usage.atsScore = data.atsScore;
-                usage.resumeKeywords = data.keywords || [];
-                usage.generatedQuestions = data.questions || [];
-                usage.lastInterviewSuggestion = "Resume analyzed. Your personalized questions are ready.";
-
-                saveUsage();
-                renderDashboard();
-                renderPerformanceChart();
-
-                alert(`Resume uploaded successfully.\nATS Score: ${usage.atsScore}%`);
-            } catch (err) {
-                console.error(err);
-                alert("Could not upload the PDF");
+            if (!res.ok) {
+                alert(data.message || "Could not upload the PDF");
+                return;
             }
-        });
-    }
-});
+
+            usage.resumeUploaded = true;
+            usage.resumeUploads += 1;
+            usage.atsScore = data.atsScore || 0;
+            usage.resumeKeywords = Array.isArray(data.keywords) ? data.keywords : [];
+            usage.generatedQuestions = Array.isArray(data.questions) ? data.questions : [];
+            usage.lastInterviewSuggestion = "Resume analyzed. Your personalized questions are ready.";
+
+            saveUsage();
+            renderDashboard();
+            renderPerformanceChart();
+
+            alert(`Resume uploaded successfully.\nATS Score: ${usage.atsScore}%`);
+        } catch (err) {
+            console.error("Resume upload error:", err);
+            alert("Could not upload the PDF");
+        } finally {
+            e.target.value = "";
+        }
+    });
+}
 
 function renderDashboard() {
-    document.getElementById("streamSelect").value = usage.stream;
-    document.getElementById("interviewType").value = usage.interviewType || "Technical";
-    document.getElementById("difficultyLevel").value = usage.difficulty;
+    const streamSelect = document.getElementById("streamSelect");
+    const interviewTypeSelect = document.getElementById("interviewType");
+    const difficultyLevelSelect = document.getElementById("difficultyLevel");
+
+    if (streamSelect) streamSelect.value = usage.stream;
+    if (interviewTypeSelect) interviewTypeSelect.value = usage.interviewType || "Technical";
+
+    updateDifficultyOptionsOnly();
+
+    if (difficultyLevelSelect) difficultyLevelSelect.value = usage.difficulty;
 
     document.getElementById("currentStream").innerText = usage.stream;
     document.getElementById("statInterviews").innerText = usage.interviewsStarted;
@@ -143,7 +183,8 @@ function renderDashboard() {
 
     document.getElementById("insightStream").innerText = usage.stream;
     document.getElementById("insightType").innerText = usage.interviewType || "Not selected";
-    document.getElementById("recommendedFocus").innerText = usage.lastInterviewSuggestion || "Upload your resume to unlock AI questions.";
+    document.getElementById("recommendedFocus").innerText =
+        usage.lastInterviewSuggestion || "Upload your resume to unlock AI questions.";
 
     const tagsBox = document.getElementById("focusTags");
     tagsBox.innerHTML = "";
@@ -178,13 +219,51 @@ function renderDashboard() {
     uploadBtn.style.display = "none";
     virtualBtn.style.display = "inline-block";
     aptitudeBtn.style.display = "inline-block";
-    startBtn.style.display = usage.interviewType ? "inline-block" : "none";
+    startBtn.style.display = "inline-block";
+}
+
+function updateDifficultyOptionsOnly() {
+    const type = usage.interviewType || "Technical";
+    const difficultySelect = document.getElementById("difficultyLevel");
+
+    if (!difficultySelect) return;
+
+    let allowed = [];
+
+    if (type === "Technical") allowed = ["Easy", "Medium", "Hard"];
+    else if (type === "HR") allowed = ["Easy", "Medium"];
+    else if (type === "Startup Founder") allowed = ["Medium", "Hard"];
+    else if (type === "Friendly Mentor") allowed = ["Easy", "Medium"];
+    else if (type === "Virtual Interview") allowed = ["Medium", "Hard"];
+    else if (type === "Aptitude Test") allowed = ["Easy", "Medium", "Hard"];
+    else allowed = ["Easy", "Medium"];
+
+    difficultySelect.innerHTML = "";
+
+    allowed.forEach(level => {
+        const option = document.createElement("option");
+        option.value = level;
+        option.textContent = level;
+        difficultySelect.appendChild(option);
+    });
+
+    if (!allowed.includes(usage.difficulty)) {
+        usage.difficulty = allowed[0];
+    }
 }
 
 function selectMode(type) {
     usage.interviewType = type;
+
+    if (type === "Virtual Interview") {
+        usage.difficulty = "Medium";
+    } else if (type === "Aptitude Test" && !["Easy", "Medium", "Hard"].includes(usage.difficulty)) {
+        usage.difficulty = "Easy";
+    }
+
     saveUsage();
     renderDashboard();
+    renderPerformanceChart();
 }
 
 function pushScore(arr, val) {
@@ -193,6 +272,11 @@ function pushScore(arr, val) {
 }
 
 function startInterview() {
+    if (!usage.resumeUploaded) {
+        alert("Please upload your resume first");
+        return;
+    }
+
     if (usage.interviewType === "Virtual Interview") {
         window.location.href = "interview.html";
         return;
@@ -204,11 +288,12 @@ function startInterview() {
     }
 
     usage.interviewsStarted += 1;
-    pushScore(usage.technicalScores, usage.technicalScores.at(-1) + 10);
-    pushScore(usage.communicationScores, usage.communicationScores.at(-1) + 8);
-    pushScore(usage.confidenceScores, usage.confidenceScores.at(-1) + 7);
+    pushScore(usage.technicalScores, (usage.technicalScores.at(-1) || 0) + 10);
+    pushScore(usage.communicationScores, (usage.communicationScores.at(-1) || 0) + 8);
+    pushScore(usage.confidenceScores, (usage.confidenceScores.at(-1) || 0) + 7);
 
-    usage.lastInterviewSuggestion = "Interview completed. Continue improving your clarity and project explanations.";
+    usage.lastInterviewSuggestion =
+        "Interview completed. Continue improving your clarity and project explanations.";
 
     saveUsage();
     renderDashboard();
@@ -221,10 +306,11 @@ function renderPerformanceChart() {
     const canvas = document.getElementById("performanceChart");
     if (!canvas) return;
 
-    const existingChart = Chart.getChart(canvas);
-    if (existingChart) existingChart.destroy();
+    if (performanceChartInstance) {
+        performanceChartInstance.destroy();
+    }
 
-    new Chart(canvas, {
+    performanceChartInstance = new Chart(canvas, {
         type: "line",
         data: {
             labels: ["Session 1", "Session 2", "Session 3", "Session 4", "Session 5"],
@@ -281,8 +367,15 @@ function renderPerformanceChart() {
 function logout() {
     localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("isLoggedIn");
     window.location.href = "index.html";
 }
 
-renderDashboard();
-renderPerformanceChart();
+document.addEventListener("DOMContentLoaded", () => {
+    if (!protectDashboard()) return;
+
+    fillUserDetails();
+    renderDashboard();
+    renderPerformanceChart();
+    bindResumeUpload();
+});
