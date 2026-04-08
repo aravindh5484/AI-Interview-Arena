@@ -3,34 +3,75 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const { PDFParse } = require("pdf-parse");
+const path = require("path");
+const bcrypt = require("bcryptjs");
 
-require("dotenv").config(); // ✅ must be here (top)
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(express.json());
-app.use(cors());
 
-// ✅ correct MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.log("❌ DB Error:", err.message));
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-const User = mongoose.model("User", {
-  name: String,
-  email: String,
-  password: String
-});
+// Debug logs
+console.log("ENV FILE PATH:", path.join(__dirname, ".env"));
+console.log("MONGO_URI FOUND:", !!process.env.MONGO_URI);
 
+// MongoDB connection
+async function connectDB() {
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is missing in .env file");
+    }
+
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 15000
+    });
+
+    console.log("✅ MongoDB Connected");
+  } catch (err) {
+    console.log("❌ DB Error:", err.message);
+  }
+}
+
+connectDB();
+
+// User Schema
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    password: { type: String, required: true }
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+// Multer setup
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
+// Root route
 app.get("/", (req, res) => {
-  res.send("Backend working");
+  res.status(200).send("Backend working");
 });
 
+// Health route
+app.get("/health", (req, res) => {
+  res.status(200).json({ message: "Server healthy" });
+});
+
+// Signup
 app.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -39,50 +80,77 @@ app.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Fill all fields" });
     }
 
-    const existing = await User.findOne({ email });
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existing = await User.findOne({ email: cleanEmail });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = new User({ name, email, password });
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      name: name.trim(),
+      email: cleanEmail,
+      password: hashedPassword
+    });
+
     await user.save();
 
-    res.json({
+    return res.status(201).json({
       message: "Signup successful",
       name: user.name,
       email: user.email
     });
   } catch (err) {
     console.log("Signup error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
+// Login
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
-    if (user.password !== password) {
+    // Support both:
+    // 1. old plain-text passwords
+    // 2. new bcrypt-hashed passwords
+    let isMatch = false;
+
+    try {
+      isMatch = await bcrypt.compare(password, user.password);
+    } catch (err) {
+      isMatch = false;
+    }
+
+    if (!isMatch && user.password !== password) {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    res.json({
+    return res.status(200).json({
       message: "Login successful",
       name: user.name,
       email: user.email
     });
   } catch (err) {
     console.log("Login error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
+// Helpers
 function cleanText(text) {
   return text
     .replace(/\u0000/g, " ")
@@ -102,11 +170,12 @@ function extractSkills(lines) {
       lower.includes("programming languages:") ||
       lower.includes("web technologies:") ||
       lower.includes("frameworks/tools:") ||
-      lower.includes("core concepts:")
+      lower.includes("core concepts:") ||
+      lower.includes("technical skills:")
     ) {
       const parts = line.split(":");
       if (parts[1]) {
-        parts[1].split(",").forEach(item => {
+        parts[1].split(",").forEach((item) => {
           const skill = item.trim();
           if (skill) skills.push(skill);
         });
@@ -185,6 +254,7 @@ function generateQuestions({ skills, projects, stream, difficulty }) {
   return [...new Set(questions)].slice(0, 6);
 }
 
+// Resume upload
 app.post("/upload-resume", upload.single("resume"), async (req, res) => {
   let parser = null;
 
@@ -214,10 +284,11 @@ app.post("/upload-resume", upload.single("resume"), async (req, res) => {
       });
     }
 
-    const lines = resumeText.split("\n").map(l => l.trim()).filter(Boolean);
+    const lines = resumeText.split("\n").map((l) => l.trim()).filter(Boolean);
     const skills = extractSkills(lines);
     const projects = extractProjects(lines);
     const atsScore = calculateATS(resumeText, skills, projects);
+
     const questions = generateQuestions({
       skills,
       projects,
@@ -227,26 +298,27 @@ app.post("/upload-resume", upload.single("resume"), async (req, res) => {
 
     const keywords = [...new Set([...skills, ...projects])].slice(0, 10);
 
-    res.json({
+    return res.status(200).json({
       message: "Resume analyzed successfully",
       atsScore,
       keywords,
       questions
     });
   } catch (err) {
-    console.log("❌ Upload error:", err);
-    res.status(500).json({
+    console.log("❌ Upload error:", err.message);
+    return res.status(500).json({
       message: "Resume processing failed on backend"
     });
   } finally {
     if (parser) {
       try {
         await parser.destroy();
-      } catch (_) {}
+      } catch (e) {}
     }
   }
 });
 
-app.listen(5000, () => {
-  console.log("🚀 Server running on http://localhost:5000");
+// Server start
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

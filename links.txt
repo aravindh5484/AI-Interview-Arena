@@ -1,0 +1,7 @@
+https://ai-interview-arena-ldd3.vercel.app/  (main vercel link) 
+
+
+https://ai-interview-backend-230t.onrender.com(-backend live connectivity)
+
+
+open mongo db atlass for seeing user entry

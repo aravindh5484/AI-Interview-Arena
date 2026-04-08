@@ -9,6 +9,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <script>
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  if (isLoggedIn !== "true") {
+    window.location.href = "index.html";
+  }
+</script>
   <div class="page-shell">
     <div class="ambient ambient-1"></div>
     <div class="ambient ambient-2"></div>

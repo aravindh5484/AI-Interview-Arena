@@ -1,21 +1,25 @@
 const API_URL = "https://ai-interview-backend-230t.onrender.com";
 
-// 🔁 SWITCH UI
 function showSignup() {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("signupBox").style.display = "block";
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("signupBox").classList.remove("hidden");
+
+    document.getElementById("loginTab").classList.remove("active");
+    document.getElementById("signupTab").classList.add("active");
 }
 
 function showLogin() {
-    document.getElementById("signupBox").style.display = "none";
-    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("signupBox").classList.add("hidden");
+    document.getElementById("loginBox").classList.remove("hidden");
+
+    document.getElementById("signupTab").classList.remove("active");
+    document.getElementById("loginTab").classList.add("active");
 }
 
-// 📝 SIGNUP
 async function signup() {
-    const name = document.getElementById("signupName")?.value.trim();
-    const email = document.getElementById("signupEmail")?.value.trim();
-    const password = document.getElementById("signupPassword")?.value.trim();
+    const name = document.getElementById("signupName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
 
     if (!name || !email || !password) {
         alert("Fill all fields");
@@ -23,6 +27,8 @@ async function signup() {
     }
 
     try {
+        console.log("Sending signup request...");
+
         const res = await fetch(`${API_URL}/signup`, {
             method: "POST",
             headers: {
@@ -32,26 +38,31 @@ async function signup() {
         });
 
         const data = await res.json();
+        console.log("Signup status:", res.status);
+        console.log("Signup data:", data);
 
         if (res.ok) {
             alert("Signup successful");
-            showLogin();
 
+            document.getElementById("signupName").value = "";
+            document.getElementById("signupEmail").value = "";
+            document.getElementById("signupPassword").value = "";
+
+            showLogin();
             document.getElementById("loginEmail").value = email;
             document.getElementById("loginPassword").value = password;
         } else {
-            alert(data.message);
+            alert(data.message || "Signup failed");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Signup fetch error:", err);
         alert("Server not working");
     }
 }
 
-// 🔐 LOGIN
 async function login() {
-    const email = document.getElementById("loginEmail")?.value.trim();
-    const password = document.getElementById("loginPassword")?.value.trim();
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
 
     if (!email || !password) {
         alert("Fill all fields");
@@ -59,6 +70,8 @@ async function login() {
     }
 
     try {
+        console.log("Sending login request...");
+
         const res = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: {
@@ -68,18 +81,25 @@ async function login() {
         });
 
         const data = await res.json();
+        console.log("Login status:", res.status);
+        console.log("Login data:", data);
 
         if (res.ok) {
-            localStorage.setItem("userName", data.name);
-            localStorage.setItem("userEmail", data.email);
+            localStorage.setItem("userName", data.name || "");
+            localStorage.setItem("userEmail", data.email || "");
+            localStorage.setItem("isLoggedIn", "true");
 
-            alert("Login successful");
-            window.location.href = "dashboard.html";
+            console.log("Redirecting to dashboard...");
+            window.location.href = "./dashboard.html";
         } else {
-            alert(data.message);
+            alert(data.message || "Login failed");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Login fetch error:", err);
         alert("Server not working");
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    showLogin();
+});
